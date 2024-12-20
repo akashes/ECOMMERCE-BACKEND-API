@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { resetPasswordUtil } from "../utils/nodemailer.util.js";
 import randomString from 'randomstring'
+import { jwt_secret_key } from "../config/config.js";
 
 
 const hashPassword=async(password)=>{
@@ -17,7 +18,7 @@ try {
 
 const generateJwtToken=async(id)=>{
 try {
-        return await jwt.sign({id},process.env.JWT_SECRET_KEY)
+        return await jwt.sign({id},jwt_secret_key)
     
 } catch (error) {
     res.status(400).json(error.message)
@@ -165,3 +166,48 @@ export const updateNewPassword = async (req, res) => {
     }
 };
 
+
+// renew token 
+const renewToken = async(id)=>{
+    try {
+     return  await jwt.sign({id},jwt_secret_key,{expiresIn:'1h'})
+        
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            success:false,
+            message:'Failed to create refresh token'
+        })
+
+    }
+}
+
+
+export const  createRefreshToken=async(req,res)=>{
+    try {
+        const{id}=req.body
+        const user = await User.findById(id)
+        if(user){
+
+          const token =  await renewToken(id)
+          res.status(200).json({
+            success:true,
+            message:'Refresh token created',
+            data:token
+          })
+
+        }else{
+            return res.status(400).json({
+                success:false,
+                message:'User not found'
+            })
+        }
+        
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            success:false,
+            message:'Failed to create refresh token'
+        })
+    }
+}
