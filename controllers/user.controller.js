@@ -5,6 +5,7 @@ import { resetPasswordUtil } from "../utils/nodemailer.util.js";
 import randomString from 'randomstring'
 import { jwt_secret_key } from "../config/config.js";
 
+import fs from 'fs'
 
 const hashPassword=async(password)=>{
 try {
@@ -170,7 +171,23 @@ export const updateNewPassword = async (req, res) => {
 // renew token 
 const renewToken = async(id)=>{
     try {
-     return  await jwt.sign({id},jwt_secret_key,{expiresIn:'1h'})
+        const jwt_secret = jwt_secret_key
+        console.log({jwt_secret})
+      const new_jwt =  randomString.generate(8)
+      console.log({new_jwt})
+      fs.readFile('config/config.js','utf-8',function(err,data){
+        if(err) throw err
+        console.log({data})
+
+       const newValue =  data.replace(new RegExp(jwt_secret,"g"),new_jwt)
+       console.log({newValue})
+       fs.writeFile('config/config.js',newValue,'utf-8',function(err,data){
+        if(err) throw err
+        console.log("Done!")
+       })
+      })
+      console.log({jwt_secret_key})
+     return  await jwt.sign({id},new_jwt,{expiresIn:'1h'})
         
     } catch (error) {
         console.log(error)
@@ -181,7 +198,7 @@ const renewToken = async(id)=>{
 
     }
 }
-
+ 
 
 export const  createRefreshToken=async(req,res)=>{
     try {

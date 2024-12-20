@@ -14,6 +14,7 @@ export const createStore=async(req,res)=>{
        if(isVendorExists) return res.status(400).json({message:"Vendor already created a store"})
 
        const storeData= await Store.create({vendor_id,business_email,address,pin,logo,location:{
+        type:"Point",
             coordinates:[parseFloat(longitude),parseFloat(latitude)]
         }})
         res.status(200).json({
@@ -29,4 +30,4 @@ export const createStore=async(req,res)=>{
         })
         
     }
-}
+} 
